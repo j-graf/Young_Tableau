@@ -630,3 +630,18 @@ skewFormula4 = (lam,mu,numVars) -> (
     
     theCoeff*Qlam(thePart,numVars)
     )
+
+--computes all SSYT of h_{n+i}*S_{lam/1^i}
+genhsSSYT = (n,lam,i) -> (
+    if i > #lam then return({});
+    hSSYT := genAllSSYT({n+i},{0},#lam+1);
+    sSSYT := genAllSSYT(lam,toList(i:1),#lam+1);
+    ans := {};
+    
+    for hT in hSSYT do (
+        for sT in sSSYT do (
+            ans = ans|{listToTableau(tableauToList(hT)|tableauToList(sT))};
+            );
+        );
+    ans
+    )
