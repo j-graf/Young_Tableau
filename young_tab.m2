@@ -690,3 +690,22 @@ isSSYT = theT -> (
     
     return true;
     )
+
+-- moves first box from row i to row 0
+theMap = (theT,i) -> (
+    listT := tableauToList theT;
+    numRows := #listT;
+    
+    if i > numRows then print("theMap error: i too large");
+    
+    newList := {{theT_(i,0)}|listT#0};
+    for j from 1 to numRows-1 do (
+        if j == i then (
+            newList = newList|{{0}|(listT#j)_{1..(#(listT#j)-1)}};
+            ) else (
+            newList = newList|{listT#j};
+            );
+        );
+    
+    listToTableau newList
+    )
