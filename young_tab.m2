@@ -709,3 +709,23 @@ theMap = (theT,i) -> (
     
     listToTableau newList
     )
+
+theMapAll = (n,lam) -> (
+    ans := "";
+    
+    for i from 0 to #lam-1 do (
+        ans = ans|"\\subsection{i="|toString(i)|"}\n";
+        thehsList := genhsSSYT(n,lam,i);
+        for theT in thehsList do (
+            ans = ans|"\\[\n";
+            ans = ans|tabToTex(theT);
+            if (i > 0) or (not isSSYT theT) then (
+                ans = ans|"\n\\qquad\n";
+                ans = ans|tabToTex(theMap(theT,i+1));
+                );
+            ans = ans|"\n\\]\n\\vspace{1em}\n";
+            );
+        );
+    
+    ans
+    )
