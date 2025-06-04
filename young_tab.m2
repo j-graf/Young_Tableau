@@ -655,7 +655,7 @@ tabToTex = theT -> (
         line := "    ";
         boxColor := "";
         if theRow != sort theRow then (
-            boxColor := "*(red)";
+            boxColor = "*(red)";
             );
         for theBox in theRow do (
             if theBox == 0 then (
