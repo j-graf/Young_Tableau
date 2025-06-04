@@ -646,6 +646,7 @@ genhsSSYT = (n,lam,i) -> (
     ans
     )
 
+-- prints tableau into latex input
 tabToTex = theT -> (
     ans := "\\[\n\\begin{ytableau}\n";
     
@@ -669,4 +670,23 @@ tabToTex = theT -> (
     ans = ans|"\\end{ytableau}\n\\]";
     
     ans
+    )
+
+-- returns true if theT is an SSYT
+isSSYT = theT -> (
+    listT := tableauToList theT;
+    for theRow in listT do (
+        if theRow != sort theRow then (
+            return(false);
+            );
+        );
+    
+    for i from 0 to #(listT#0)-1 do (
+        theCol := theT_i;
+        for j from 0 to #theCol-2 do (
+            if theCol#i >= theCol#(i+1) then return(false);
+            );
+        );
+    
+    return true;
     )
