@@ -645,3 +645,28 @@ genhsSSYT = (n,lam,i) -> (
         );
     ans
     )
+
+tabToTex = theT -> (
+    ans := "\\[\n\\begin{ytableau}\n";
+    
+    listT := tableauToList theT;
+    
+    for theRow in listT do (
+        line := "    ";
+        boxColor := "";
+        if theRow != sort theRow then (
+            boxColor := "*(red)";
+            );
+        for theBox in theRow do (
+            if theBox == 0 then (
+                line = line|"\\none"|"&";
+                ) else (
+                line = line|boxColor|toString(theBox)|"&";
+                );
+            );
+        ans = ans|substring(line,0,#line-1)|"\\\\\n";
+        );
+    ans = ans|"\\end{ytableau}\n\\]";
+    
+    ans
+    )
