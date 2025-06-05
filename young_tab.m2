@@ -666,9 +666,10 @@ isSSYT = theT -> (
 
 --moves first box of row i to row 0, shifting row 0 right
 moveBoxUp = (theT,i) -> (
-    if i == 0 then return(theT);
     listT := tableauToList theT;
     numRows := #listT;
+    if i <= 0 or i > numRows-1 then return(theT);
+    
     newList := {{theT_(i,0)}|listT#0};
     for j from 1 to numRows-1 do (
         if j == i then (
@@ -683,9 +684,11 @@ moveBoxUp = (theT,i) -> (
 
 --moves first box of row 0 to row i, shifting row 0 left
 moveBoxDown = (theT,i) -> (
-    if i == 0 then return(theT);
+    if i <= 0 then return(theT);
     listT := tableauToList theT;
     numRows := #listT;
+    if i <= 0 or i > numRows-1 then return(theT);
+    
     newList := {(listT#0)_{1..(#(listT#0)-1)}};
     for j from 1 to numRows-1 do (
         if j == i then (
@@ -708,7 +711,8 @@ theMap = (theT,i) -> (
     if i > numRows then print("theMap error: i too large");
     if i == numRows then return(theT);
     
-    moveBoxUp(theT,i)
+    upT := moveBoxUp(theT,i)
+    --downT := moveBoxDown(theT,i);
     )
 
 tabToTex = theT -> (
@@ -716,16 +720,28 @@ tabToTex = theT -> (
     
     listT := tableauToList theT;
     
-    for theRow in listT do (
+    for i from 0 to #listT-1 do (
+        theRow := listT#i;
         line := "    ";
-        boxColor := "";
-        if theRow != sort theRow then (
-            boxColor = "*(red)";
-            );
-        for theBox in theRow do (
+        
+        for j from 0 to #theRow-1 do (
+            theBox := theRow#j;
             if theBox == 0 then (
                 line = line|"\\none"|"&";
                 ) else (
+                currCol := theT_j;
+                
+                boxColor := "";
+                if 2 <= i and theBox <= currCol#(i-1) then (
+                    boxColor = "*(blue)";
+                    );
+                if 0 < i and i <= #currCol-2 and theBox >= currCol#(i+1) then (
+                    boxColor = "*(blue)";
+                    );
+                if theRow != sort theRow then (
+                    boxColor = "*(red)";
+                    );
+                
                 line = line|boxColor|toString(theBox)|"&";
                 );
             );
@@ -779,17 +795,27 @@ theMapAllOld = (n,lam) -> (
 theMapAll = (n,lam) -> (
     tabList := {};
     mapList := {};
+    mapUpList := {};
+    mapDownList := {};
     
     for i from 0 to #lam do (
         currTabList := {};
         currMapList := {};
+        currMapUpList := {};
+        currMapDownList := {};
+        
         thehsList := genhsSSYT(n,lam,i);
+        
         for theT in thehsList do (
             currTabList = currTabList|{theT};
             currMapList = currMapList|{theMap(theT,i+1)};
+            currMapUpList = currMapUpList|{moveBoxUp(theT,i+1)};
+            currMapDownList = currMapDownList|{moveBoxDown(theT,i)};
             );
         tabList = tabList|{currTabList};
         mapList = mapList|{currMapList};
+        mapUpList = mapUpList|{currMapUpList};
+        mapDownList = mapDownList|{currMapDownList};
         );
     
     ans := "";
@@ -798,13 +824,26 @@ theMapAll = (n,lam) -> (
         for j from 0 to #(tabList#i)-1 do (
             theT := tabList#i#j;
             theMapT := mapList#i#j;
+            theMapUpT := mapUpList#i#j;
+            theMapDownT := mapDownList#i#j;
             
             textPair = "\\[\n";
             textPair = textPair|tabToTex(theT);
-            if theT != theMapT then (
+            --if theT != theMapT then (
+                --textPair = textPair|"\n\\qquad\n";
+                --textPair = textPair|tabToTex(theMapT);
+                --);
+            
+            if i < #tabList-1 then (
                 textPair = textPair|"\n\\qquad\n";
-                textPair = textPair|tabToTex(theMapT);
-                );
+                textPair = textPair|tabToTex(theMapUpT);
+            );
+            if i > 0 then (
+                textPair = textPair|"\n\\qquad\n";
+                textPair = textPair|tabToTex(theMapDownT);
+            );
+            
+            
             textPair = textPair|"\\]\n";
             if i > 0 and number(mapList#(i-1),aT -> aT == theT) == 0 then (
                 textPair = textPair|"\\begin{center}\\hl{Above Not Cancelled}\\end{center}\n";
