@@ -470,6 +470,61 @@ moveBoxDown = (theT,i) -> (
     listToTableau newList
     )
 
+-- if theT_(i,0) == 0 then: swaps first k-1 boxes of row i with the first k   boxes of row 0
+--                    else: swaps first k   boxes of row i with the first k-1 boxes of row 0
+swapRows = (theT,i,k) -> (
+    listT := tableauToList theT;
+    
+    if i == 0 or k == 0 then return(theT);
+    if i >= #listT then return(false);
+    
+    theRow0 := theT^0;
+    theRowi := theT^i;
+    
+    if k > #theRowi then return(false);
+    
+    isSkew := theRowi#0 == 0;
+    skewOffset := 0;
+    if isSkew then (skewOffset = 1);
+    
+    startRow0 := theRow0_{0..(k-2+skewOffset)};
+    endRow0 := theRow0_{(k-1+skewOffset)..(#theRow0-1)};
+    startRowi := theRowi_{0..(k-1)};
+    endRowi := theRowi_{k..(#theRowi-1)};
+    
+    extraBox := {0};
+    if isSkew then (
+        extraBox = {};
+        startRowi = startRowi_{1..#startRowi-1};
+        );
+    
+    newRow0 := startRowi|endRow0;
+    newRowi := extraBox|startRow0|endRowi;
+    
+    newList := {newRow0};
+    for j from 1 to #listT-1 do (
+        if j == i then (
+            newList = newList|{newRowi};
+            ) else (
+            newList = newList|{theT^j};
+            );
+        );
+    
+    listToTableau newList
+    )
+
+aT = listToTableau {{1,2,3,4,5,6},{11,22,33,44},{111,222,333,444},{1111,2222,3333}}
+bT = listToTableau {{1,2,3,4,5,6},{0,22,33,44},{0,222,333,444},{0,2222,3333}}
+
+rowInd = 2
+numBox = 5
+
+net aT
+net swapRows(aT,rowInd,numBox)
+
+net bT
+net swapRows(bT,rowInd,numBox)
+
 -- moves first box from row i to row 0
 theMap = (theT,i) -> (
     if i == 1 and isSSYT(theT) then return(theT);
@@ -586,6 +641,16 @@ aT = listToTableau {{1,2,3,4,5,6},{11,22,33,44},{111,222,333,4444},{1111,2222,33
 net aT
 net moveMultiBoxUp(aT,2,4)
 ishsSSYT aT
+
+net aT
+swapRows(aT,2,2)
+
+
+
+
+
+
+
 
 
 
