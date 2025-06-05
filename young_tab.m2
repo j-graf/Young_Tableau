@@ -733,10 +733,10 @@ tabToTex = theT -> (
                 
                 boxColor := "";
                 if 2 <= i and theBox <= currCol#(i-1) then (
-                    boxColor = "*(blue)";
+                    boxColor = "*(green)";
                     );
                 if 0 < i and i <= #currCol-2 and theBox >= currCol#(i+1) then (
-                    boxColor = "*(blue)";
+                    boxColor = "*(green)";
                     );
                 if theRow != sort theRow then (
                     boxColor = "*(red)";
