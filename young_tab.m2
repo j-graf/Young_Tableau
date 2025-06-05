@@ -216,7 +216,7 @@ isSSYT = theT -> (
     for i from 0 to #(listT#0)-1 do (
         theCol := theT_i;
         for j from 0 to #theCol-2 do (
-            if theCol#j >= theCol#(j+1) then return(false);
+            if theCol#j != 0 and theCol#j >= theCol#(j+1) then return(false);
             );
         );
     
@@ -361,6 +361,7 @@ genhsSSYT = (n,lam,i) -> (
 
 -- returns true if the first row is weakly increasing, and other rows form an SSYT
 ishsSSYT = theT -> (
+    if not instance(theT,YoungTableau) then return(false);
     listT := tableauToList theT;
     
     if listT#0 != sort listT#0 then return(false);
@@ -513,20 +514,73 @@ swapRows = (theT,i,k) -> (
     listToTableau newList
     )
 
+
+-- moves first box from row i to row 0
+theMap = (theT) -> (
+    firstCol := theT_0;
+    numZeros := number(firstCol,theBox -> theBox == 0);
+    i := numZeros + 1;
+    
+    if i == 1 and isSSYT(theT) then return(theT);
+    
+    listT := tableauToList theT;
+    numRows := #listT;
+    
+    mapAddT := listToTableau {{2,1}};--swapRows(theT,numZeros,1);
+    mapRemT := listToTableau {{2,1}};--swapRows(theT,numZeros+1,1);
+    
+    --print(net mapAddT);
+    --print(net mapRemT);
+    --print(i);
+    
+    --if i == 1 then return(mapRemT);
+    --if i == #firstCol then return(mapAddT);
+    
+    for k from 1 to min(#(listT#0),#(listT#(i-1))) do (
+        if i != 1 then (
+            mapAddT = swapRows(theT,numZeros,k);
+            );
+        if i != #firstCol then (
+            mapRemT := swapRows(theT,numZeros+1,k);
+            );
+        
+        if ishsSSYT(mapAddT) and i != 1 then (
+            return(mapAddT);
+            ) else if ishsSSYT(mapRemT) and i != #firstCol then (
+            return(mapRemT);
+            )
+        );
+    
+    return(listToTableau {{2,1}});
+    )
+
+
+-*
+
+test2 = listToTableau {{1,1,1,1,1},{0,1,1},{0,2}}
+net test2
+net theMap test2
+
+min(1,2,3)
+
+
 aT = listToTableau {{1,2,3,4,5,6},{11,22,33,44},{111,222,333,444},{1111,2222,3333}}
 bT = listToTableau {{1,2,3,4,5,6},{0,22,33,44},{0,222,333,444},{0,2222,3333}}
 
 rowInd = 2
-numBox = 5
+numBox = 3
 
 net aT
 net swapRows(aT,rowInd,numBox)
+net theMap(aT)
 
 net bT
-net swapRows(bT,rowInd,numBox)
+net swapRows(bT,3,1)
+net theMap(bT)
+*-
 
 -- moves first box from row i to row 0
-theMap = (theT,i) -> (
+theMapOld = (theT,i) -> (
     if i == 1 and isSSYT(theT) then return(theT);
     
     listT := tableauToList theT;
@@ -541,30 +595,31 @@ theMap = (theT,i) -> (
 
 
 
-theMapAll = (n,lam) -> (
+theMapAllOld = (n,lam) -> (
     tabList := {};
     mapList := {};
-    mapUpList := {};
-    mapDownList := {};
+    --mapUpList := {};
+    --mapDownList := {};
     
     for i from 0 to #lam do (
         currTabList := {};
         currMapList := {};
-        currMapUpList := {};
-        currMapDownList := {};
+        --currMapUpList := {};
+        --currMapDownList := {};
         
         thehsList := genhsSSYT(n,lam,i);
         
         for theT in thehsList do (
             currTabList = currTabList|{theT};
-            currMapList = currMapList|{theMap(theT,i+1)};
-            currMapUpList = currMapUpList|{moveBoxUp(theT,i+1)};
-            currMapDownList = currMapDownList|{moveBoxDown(theT,i)};
+            --print(net theT);
+            currMapList = currMapList|{theMap(theT)};
+            --currMapUpList = currMapUpList|{moveBoxUp(theT,i+1)};
+            --currMapDownList = currMapDownList|{moveBoxDown(theT,i)};
             );
         tabList = tabList|{currTabList};
         mapList = mapList|{currMapList};
-        mapUpList = mapUpList|{currMapUpList};
-        mapDownList = mapDownList|{currMapDownList};
+        --mapUpList = mapUpList|{currMapUpList};
+        --mapDownList = mapDownList|{currMapDownList};
         );
     
     ans := "";
@@ -573,16 +628,16 @@ theMapAll = (n,lam) -> (
         for j from 0 to #(tabList#i)-1 do (
             theT := tabList#i#j;
             theMapT := mapList#i#j;
-            theMapUpT := mapUpList#i#j;
-            theMapDownT := mapDownList#i#j;
+            --theMapUpT := mapUpList#i#j;
+            --theMapDownT := mapDownList#i#j;
             
             textPair = "\\[\n";
             textPair = textPair|tabToTex(theT);
-            --if theT != theMapT then (
-                --textPair = textPair|"\n\\qquad\n";
-                --textPair = textPair|tabToTex(theMapT);
-                --);
-            
+            if theT != theMapT then (
+                textPair = textPair|"\n\\qquad\n";
+                textPair = textPair|tabToTex(theMapT);
+                );
+            -*
             if i < #tabList-1 then (
                 textPair = textPair|"\n\\qquad\n";
                 textPair = textPair|tabToTex(theMapUpT);
@@ -591,9 +646,9 @@ theMapAll = (n,lam) -> (
                 textPair = textPair|"\n\\qquad\n";
                 textPair = textPair|tabToTex(theMapDownT);
             );
+            *-
             
-            
-            textPair = textPair|"\\]\n";
+            textPair = textPair|"\n\\]\n";
             if i > 0 and number(mapList#(i-1),aT -> aT == theT) == 0 then (
                 textPair = textPair|"\\begin{center}\\hl{Above Not Cancelled}\\end{center}\n";
                 );
@@ -607,9 +662,11 @@ theMapAll = (n,lam) -> (
     )
 
 
+
+
 n = 3
-lam = {3,2}
-theMapAll(n,lam)
+lam = {3,2,2}
+theMapAllOld(n,lam)
 
 
 
@@ -647,6 +704,18 @@ swapRows(aT,2,2)
 
 
 
+
+aT = listToTableau {{1,2,3,4,5,6},{11,22,33,44},{111,222,333,444},{1111,2222,3333}}
+bT = listToTableau {{1,2,3,4,5,6},{0,22,33,44},{0,222,333,444},{0,2222,3333}}
+
+rowInd = 2
+numBox = 5
+
+net aT
+net swapRows(aT,rowInd,numBox)
+
+net bT
+net swapRows(bT,rowInd,numBox)
 
 
 
