@@ -664,16 +664,11 @@ isSSYT = theT -> (
     return true;
     )
 
--- moves first box from row i to row 0
-theMap = (theT,i) -> (
-    if i == 1 and isSSYT(theT) then return(theT);
-    
+--moves first box of row i to row 0, shifting row 0 right
+moveBoxUp = (theT,i) -> (
+    if i == 0 then return(theT);
     listT := tableauToList theT;
     numRows := #listT;
-    
-    if i > numRows then print("theMap error: i too large");
-    if i == numRows then return(theT);
-    
     newList := {{theT_(i,0)}|listT#0};
     for j from 1 to numRows-1 do (
         if j == i then (
@@ -684,6 +679,36 @@ theMap = (theT,i) -> (
         );
     
     listToTableau newList
+    )
+
+--moves first box of row 0 to row i, shifting row 0 left
+moveBoxDown = (theT,i) -> (
+    if i == 0 then return(theT);
+    listT := tableauToList theT;
+    numRows := #listT;
+    newList := {(listT#0)_{1..(#(listT#0)-1)}};
+    for j from 1 to numRows-1 do (
+        if j == i then (
+            newList = newList|{{theT_(0,0)}|(listT#j)_{1..(#(listT#j)-1)}};
+            ) else (
+            newList = newList|{listT#j};
+            );
+        );
+    
+    listToTableau newList
+    )
+
+-- moves first box from row i to row 0
+theMap = (theT,i) -> (
+    if i == 1 and isSSYT(theT) then return(theT);
+    
+    listT := tableauToList theT;
+    numRows := #listT;
+    
+    if i > numRows then print("theMap error: i too large");
+    if i == numRows then return(theT);
+    
+    moveBoxUp(theT,i)
     )
 
 tabToTex = theT -> (
@@ -781,7 +806,9 @@ theMapAll = (n,lam) -> (
                 textPair = textPair|tabToTex(theMapT);
                 );
             textPair = textPair|"\\]\n";
-            if 
+            if i > 0 and number(mapList#(i-1),aT -> aT == theT) == 0 then (
+                textPair = textPair|"\\begin{center}\\hl{Above Not Cancelled}\\end{center}\n";
+                );
             ans = ans|textPair;
             ans = ans|"\\vspace{1em}\n";
             );
@@ -800,13 +827,13 @@ theMapAll(n,lam)
 
 
 test = genhsSSYT(n,lam,0)
-test2 = {}
+#test
+
+ans = ""
 for theT in test do (
-    if not isSSYT theT then (
-        test2 = test2|{theMap(theT,1)};
-        );
+    print(net moveBoxUp(theT,1));
     )
-#test2
+ans
 
 aT = listToTableau {{2,2,3,3},{0,1,1},{3,3}}
 
@@ -819,11 +846,12 @@ net test#1
 
 
 
+genAllSSYT(lam,{0},#lam)
+test = genAllSSYT(lam,{0},#lam)
 
+net test#0
 
-
-
-
+net moveBoxDown(test#0,1)
 
 
 
