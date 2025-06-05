@@ -631,7 +631,7 @@ skewFormula4 = (lam,mu,numVars) -> (
     theCoeff*Qlam(thePart,numVars)
     )
 
---computes all SSYT of h_{n+i}*S_{lam/1^i}
+
 genhsSSYT = (n,lam,i) -> (
     if i > #lam then return({});
     hSSYT := genAllSSYT({n+i},{0},#lam+1);
@@ -666,10 +666,13 @@ isSSYT = theT -> (
 
 -- moves first box from row i to row 0
 theMap = (theT,i) -> (
+    if i == 1 and isSSYT(theT) then return(theT);
+    
     listT := tableauToList theT;
     numRows := #listT;
     
     if i > numRows then print("theMap error: i too large");
+    if i == numRows then return(theT);
     
     newList := {{theT_(i,0)}|listT#0};
     for j from 1 to numRows-1 do (
@@ -708,22 +711,124 @@ tabToTex = theT -> (
     ans
     )
 
-theMapAll = (n,lam) -> (
+theMapAllOld = (n,lam) -> (
     ans := "";
+    mapOutputList := {};
+    ansOutlier := "";
     
-    for i from 0 to #lam-1 do (
-        ans = ans|"\\subsection{i="|toString(i)|"}\n";
+    for i from 0 to #lam do (
+        currList := {};
+        --ans = ans|"\\subsection{i="|toString(i)|"}\n";
         thehsList := genhsSSYT(n,lam,i);
         for theT in thehsList do (
-            ans = ans|"\\[\n";
-            ans = ans|tabToTex(theT);
-            if (i > 0) or (not isSSYT theT) then (
-                ans = ans|"\n\\qquad\n";
-                ans = ans|tabToTex(theMap(theT,i+1));
+            currT := "\\[\n";
+            currT = currT|tabToTex(theT);
+            --ans = ans|"\\[\n";
+            --ans = ans|tabToTex(theT);
+            if ((0 < i) or (not isSSYT theT)) and i < #lam then (
+                --ans = ans|"\n\\qquad\n";
+                currT = currT|"\n\\qquad\n";
+                currList = currList|{theMap(theT,i+1)};
+                --ans = ans|tabToTex(currList#-1);
+                currT = currT|tabToTex(currList#-1);
+                if (currList#-1)^0 != sort (currList#-1)^0 then (
+                    ansOutlier = ansOutlier|currT|"\n\\]\n\\vspace{1em}\n";
+                    );
                 );
-            ans = ans|"\n\\]\n\\vspace{1em}\n";
+            --ans = ans|"\n\\]\n";
+            currT = currT|"\n\\]\n";
+            ans = ans|currT;
+            if i > 0 and number(mapOutputList#-1,aT -> aT == theT) == 0 then (
+                ans = ans|"\\begin{center}\\hl{Above Not Cancelled}\\end{center}\n";
+                --ansOutlier = ansOutlier|currT|"\\begin{center}\\hl{Above Not Cancelled}\\end{center}\n";
+                );
+            ans = ans|"\\vspace{1em}\n";
             );
+        mapOutputList = mapOutputList|{currList};
+        );
+    
+    --ans
+    ansOutlier
+    )
+
+theMapAll = (n,lam) -> (
+    tabList := {};
+    mapList := {};
+    
+    for i from 0 to #lam do (
+        currTabList := {};
+        currMapList := {};
+        thehsList := genhsSSYT(n,lam,i);
+        for theT in thehsList do (
+            currTabList = currTabList|{theT};
+            currMapList = currMapList|{theMap(theT,i+1)};
+            );
+        tabList = tabList|{currTabList};
+        mapList = mapList|{currMapList};
+        );
+    
+    ans := "";
+    for i from 0 to #tabList-1 do (
+        textPair := "";
+        for j from 0 to #(tabList#i)-1 do (
+            theT := tabList#i#j;
+            theMapT := mapList#i#j;
+            
+            textPair = "\\[\n";
+            textPair = textPair|tabToTex(theT);
+            if theT != theMapT then (
+                textPair = textPair|"\n\\qquad\n";
+                textPair = textPair|tabToTex(theMapT);
+                );
+            textPair = textPair|"\\]\n";
+            if 
+            ans = ans|textPair;
+            ans = ans|"\\vspace{1em}\n";
+            );
+        
         );
     
     ans
     )
+
+
+n = 3
+lam = {3,2}
+theMapAll(n,lam)
+
+
+
+
+test = genhsSSYT(n,lam,0)
+test2 = {}
+for theT in test do (
+    if not isSSYT theT then (
+        test2 = test2|{theMap(theT,1)};
+        );
+    )
+#test2
+
+aT = listToTableau {{2,2,3,3},{0,1,1},{3,3}}
+
+#test
+number(test2,i -> i == aT)
+test#0 == test#1
+net test#0
+net test#1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
