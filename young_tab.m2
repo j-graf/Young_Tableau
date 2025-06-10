@@ -557,7 +557,7 @@ theMap = (theT) -> (
 
 -*
 
-test2 = listToTableau {{1,1,1,1,1},{0,1,1},{0,2}}
+test2 = listToTableau {{2,2,2,2},{0,1,1},{3,3,3}}
 net test2
 net theMap test2
 
